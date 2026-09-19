@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Shree Mata Kamakhya Ice Cream brand palette */
+  --color-primary: #e60000; /* vibrant red — buttons, active links, highlights */
+  --color-background: #fdf8f2; /* vanilla cream — page background */
+  --color-accent: #ffccd5; /* strawberry pink — alternating sections & cards */
+  --color-foreground: #3b2824; /* dark chocolate — all headings & body text */
+  --color-navbar: #ffffff; /* pure white — top navigation */
+
+  --background: 33 73% 97%;
+  --foreground: 10 24% 19%;
+  --card: 33 60% 98%;
+  --card-foreground: 10 24% 19%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 10 24% 19%;
+  --primary: 0 100% 45%;
+  --primary-foreground: 0 0% 100%;
+  --primary-glow: 0 90% 56%;
+  --secondary: 350 80% 95%;
+  --secondary-foreground: 10 24% 19%;
+  --muted: 33 40% 95%;
+  --muted-foreground: 15 20% 45%;
+  --accent: 350 100% 90%;
+  --accent-foreground: 10 24% 19%;
+  --destructive: 0 100% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 350 50% 90%;
+  --input: 350 50% 92%;
+  --ring: 0 100% 45%;
+  --radius: 1rem;
+  --glass-border: hsl(350 80% 85% / 0.35);
+  --glow-primary: 0 20px 60px -10px hsl(0 100% 45% / 0.4);
+  --glow-soft: 0 0 80px hsl(0 90% 55% / 0.3);
+  --shadow-elegant: 0 30px 80px -20px hsl(0 100% 45% / 0.25);
+  --shadow-card: 0 20px 50px -25px hsl(350 60% 50% / 0.25);
+  --gradient-bg:
+    radial-gradient(ellipse at top right, hsl(350 100% 95% / 0.8), transparent 55%),
+    radial-gradient(ellipse at bottom left, hsl(0 100% 96% / 0.7), transparent 55%),
+    linear-gradient(180deg, hsl(33 73% 97%) 0%, hsl(33 60% 99%) 100%);
+  --gradient-primary: linear-gradient(135deg, hsl(0 100% 45%), hsl(0 90% 55%));
+  --gradient-strawberry: linear-gradient(135deg, hsl(350 100% 70%), hsl(350 100% 90%));
+  --gradient-text: linear-gradient(135deg, hsl(10 24% 19%), hsl(0 100% 45%));
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--gradient-bg);
+    background-attachment: fixed;
+    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(0 0% 100% / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+
+  .text-gradient {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .text-strawberry-gradient {
+    background: var(--gradient-strawberry);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .bg-gradient-strawberry {
+    background: var(--gradient-strawberry);
+  }
+
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .glow-soft {
+    box-shadow: var(--glow-soft);
+  }
+}

@@ -1,0 +1,102 @@
+- generic [ref=f2e2]:
+  - banner [ref=f2e3]:
+    - navigation [ref=f2e5]:
+      - link "KamakhyaIcecream" [ref=f2e6] [cursor=pointer]:
+        - /url: "#home"
+      - generic [ref=f2e13]:
+        - link "Home" [ref=f2e14] [cursor=pointer]:
+          - /url: "#home"
+        - link "Flavors" [ref=f2e15] [cursor=pointer]:
+          - /url: "#flavors"
+        - link "Visit Us" [ref=f2e16] [cursor=pointer]:
+          - /url: "#visit"
+      - link "Order Now" [ref=f2e17] [cursor=pointer]:
+        - /url: "#visit"
+  - main [ref=f2e18]:
+    - generic [ref=f2e21]:
+      - generic [ref=f2e22]:
+        - generic [ref=f2e23]: Locally crafted · Scooped fresh daily
+        - heading "Small-batch ice cream with the taste of sunshine in every scoop." [level=1] [ref=f2e25]
+        - paragraph [ref=f2e26]: Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.
+        - paragraph [ref=f2e27]: Sweet moments, served with a smile.
+        - generic [ref=f2e28]:
+          - link "View Today's Flavors" [ref=f2e29] [cursor=pointer]:
+            - /url: "#flavors"
+          - link "Find Our Parlour" [ref=f2e32] [cursor=pointer]:
+            - /url: "#visit"
+        - generic [ref=f2e33]:
+          - generic [ref=f2e34]:
+            - paragraph [ref=f2e35]: 20+
+            - paragraph [ref=f2e36]: Flavors
+          - generic [ref=f2e37]:
+            - paragraph [ref=f2e38]: 100%
+            - paragraph [ref=f2e39]: Fresh Cream
+          - generic [ref=f2e40]:
+            - paragraph [ref=f2e41]: 4.9★
+            - paragraph [ref=f2e42]: Rated Locally
+      - generic [ref=f2e43]:
+        - generic [ref=f2e44]:
+          - generic [ref=f2e53]: 20+ flavours
+          - generic [ref=f2e54]: 100% fresh cream
+        - generic [ref=f2e55]: Hero visual · placeholder image
+    - generic [ref=f2e58]:
+      - paragraph [ref=f2e59]: Our Menu
+      - heading "Today's Flavors" [level=2] [ref=f2e60]
+      - paragraph [ref=f2e61]: A rotating board of churned-daily scoops — classic creams, tropical fruit and indulgent swirls.
+    - generic [ref=f2e100]:
+      - generic [ref=f2e101]:
+        - paragraph [ref=f2e102]: Visit Us
+        - heading "Find Your Nearest Scoop" [level=2] [ref=f2e103]
+        - paragraph [ref=f2e104]: Drop by the parlour for a sundae, a family tub, or a quiet corner to enjoy your scoop in the sunshine.
+      - generic [ref=f2e105]:
+        - generic [ref=f2e106]:
+          - heading "Visit Our Parlour" [level=3] [ref=f2e111]
+          - paragraph [ref=f2e112]: Kamakhya Icecream42 Market Road, near Temple GateGuwahati, Assam 781001
+          - generic [ref=f2e113]: Map placeholder
+        - generic [ref=f2e118]:
+          - heading "Store Hours" [level=3] [ref=f2e123]
+          - generic [ref=f2e124]:
+            - generic [ref=f2e125]:
+              - generic [ref=f2e126]: Monday – Thursday
+              - generic [ref=f2e127]: 11:00 AM – 9:30 PM
+            - generic [ref=f2e128]:
+              - generic [ref=f2e129]: Friday – Saturday
+              - generic [ref=f2e130]: 11:00 AM – 11:00 PM
+            - generic [ref=f2e131]:
+              - generic [ref=f2e132]: Sunday
+              - generic [ref=f2e133]: 9:00 AM – 10:00 PM
+          - paragraph [ref=f2e134]: Hours may vary on public holidays.
+          - link "View on Google Maps" [ref=f2e135] [cursor=pointer]:
+            - /url: "#visit"
+        - generic [ref=f2e139]:
+          - heading "Get In Touch" [level=3] [ref=f2e143]
+          - paragraph [ref=f2e144]: +91 98765 43210hello@kamakhyaicecream.in
+          - paragraph [ref=f2e145]: Bulk and party tubs available — order 24 hours ahead for a scoop party.
+          - generic [ref=f2e146]:
+            - link "Call the Parlour" [ref=f2e147] [cursor=pointer]:
+              - /url: tel:+919876543210
+            - link "Send an Email" [ref=f2e148] [cursor=pointer]:
+              - /url: mailto:hello@kamakhyaicecream.in
+  - contentinfo [ref=f2e149]:
+    - generic [ref=f2e150]:
+      - generic [ref=f2e151]:
+        - link "KamakhyaIcecream" [ref=f2e152] [cursor=pointer]:
+          - /url: "#home"
+        - paragraph [ref=f2e159]: Sweet moments, served daily.
+        - generic [ref=f2e160]:
+          - link "Facebook" [ref=f2e161] [cursor=pointer]:
+            - /url: "#"
+          - link "Instagram" [ref=f2e164] [cursor=pointer]:
+            - /url: "#"
+          - link "X (Twitter)" [ref=f2e168] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=f2e171]:
+          - link "Home" [ref=f2e172] [cursor=pointer]:
+            - /url: "#home"
+          - link "Flavors" [ref=f2e173] [cursor=pointer]:
+            - /url: "#flavors"
+          - link "Visit Us" [ref=f2e174] [cursor=pointer]:
+            - /url: "#visit"
+      - generic [ref=f2e175]:
+        - paragraph [ref=f2e176]: © 2026 Kamakhya Icecream. All rights reserved.
+        - paragraph [ref=f2e177]: Crafted with love in Assam
