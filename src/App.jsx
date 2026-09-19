@@ -1,26 +1,28 @@
 import Header from "./components/Header";
-import Hero from "./components/Hero";
+import SensoryHero from "./components/SensoryHero";
 import FlavorMenu from "./components/FlavorMenu";
 import AboutUs from "./components/AboutUs";
-import VisitUs from "./components/VisitUs";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import SvgDefs from "./components/SvgDefs";
+import { FlavorProvider } from "./lib/FlavorContext";
 
-function App() {
+function App({ initialData = null }) {
   return (
-    <>
-      <SvgDefs />
-      <Header />
-      <main id="home">
-        <Hero />
-        <FlavorMenu />
-        <AboutUs />
-        <VisitUs />
-        <Contact />
-      </main>
-      <Footer />
-    </>
+    <FlavorProvider>
+      {/* DOM UI layer on top. */}
+      <div className="relative z-10">
+        <SvgDefs />
+        <Header />
+        <main id="home">
+          <SensoryHero />
+          <FlavorMenu initialFlavors={initialData?.flavors ?? []} />
+          <AboutUs initialAbout={initialData?.about ?? null} />
+          <Contact initialContact={initialData?.contact ?? null} />
+        </main>
+        <Footer />
+      </div>
+    </FlavorProvider>
   );
 }
 

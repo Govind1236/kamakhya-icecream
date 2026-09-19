@@ -25,7 +25,7 @@ export default function FlavorCard({ flavor, index = 0 }) {
       className="group glass rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 animate-fade-up"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_70%_20%,hsl(350_100%_90%/0.7),transparent_55%),radial-gradient(circle_at_20%_85%,hsl(0_100%_95%/0.7),transparent_55%)]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_70%_20%,hsl(0_0%_96%/0.9),transparent_55%),radial-gradient(circle_at_20%_85%,hsl(0_0%_94%/0.9),transparent_55%)]">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -54,7 +54,7 @@ export default function FlavorCard({ flavor, index = 0 }) {
         <h3 className="mt-3 text-lg sm:text-xl md:text-2xl font-bold group-hover:text-primary transition-colors duration-300">
           {flavor.name}
         </h3>
-        <p className="mt-2 text-base sm:text-lg text-gray-500 leading-relaxed">
+        <p className="mt-2 text-base sm:text-lg text-foreground leading-relaxed">
           {flavor.description || flavor.desc}
         </p>
       </div>

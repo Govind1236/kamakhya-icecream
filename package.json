@@ -4,17 +4,29 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node server.js",
+    "dev:spa": "vite",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.jsx --outDir dist/server",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "model:placeholder": "node scripts/make-placeholder-model.mjs",
+    "preview": "vite preview",
+    "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "@directus/sdk": "^25.0.1",
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "compression": "^1.8.2",
     "directus": "^12.3.1",
+    "express": "^5.2.1",
+    "framer-motion": "^13.4.0",
+    "gsap": "^3.15.0",
     "pg": "^8.23.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "three": "^0.186.0"
   },
   "overrides": {
     "isolated-vm": "6.2.0",
@@ -45,6 +57,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
+    "ffmpeg-static": "^5.3.0",
     "oxlint": "^1.81.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.19",

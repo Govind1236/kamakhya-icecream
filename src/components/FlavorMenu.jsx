@@ -3,19 +3,38 @@ import { readItems } from "@directus/sdk";
 import { client } from "../lib/directus";
 import FlavorCard from "./FlavorCard";
 
-export default function FlavorMenu() {
-  const [flavors, setFlavors] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FlavorMenu({ initialFlavors = [] }) {
+  const [flavors, setFlavors] = useState(() =>
+    initialFlavors.map((p) => ({
+      id: p.id,
+      name: p.Title,
+      price: p.Price,
+      description: p.Description,
+      badge: p.Tags,
+      image: p.Product_Image,
+    }))
+  );
+  const [loading, setLoading] = useState(initialFlavors.length === 0);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (initialFlavors.length > 0) return;
     let active = true;
 
     async function loadFlavors() {
       try {
-        const data = await client.request(readItems("flavors"));
+        const data = await client.request(readItems("Products", { sort: ["id"] }));
         if (active) {
-          setFlavors(data);
+          setFlavors(
+            data.map((p) => ({
+              id: p.id,
+              name: p.Title,
+              price: p.Price,
+              description: p.Description,
+              badge: p.Tags,
+              image: p.Product_Image,
+            }))
+          );
           setError(null);
         }
       } catch (err) {
@@ -29,18 +48,18 @@ export default function FlavorMenu() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialFlavors]);
 
   return (
-    <section id="flavors" className="relative overflow-hidden py-16 sm:py-24 md:py-28">
+    <section id="flavors" className="relative overflow-hidden bg-brand-gray py-16 sm:py-24 md:py-28">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 h-[320px] w-[420px] rounded-full bg-brand-pink/50 blur-[80px]"></div>
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 h-[320px] w-[420px] rounded-full bg-brand-red/5 blur-[80px]"></div>
       </div>
       <div className="relative container">
         <div className="mx-auto mb-10 sm:mb-16 max-w-2xl text-center">
           <p className="text-xs sm:text-sm uppercase tracking-[0.25em] text-primary font-bold">Our Menu</p>
           <h2 className="mt-3 sm:mt-4 text-3xl sm:text-4xl md:text-5xl font-bold text-gradient">Today&apos;s Flavors</h2>
-          <p className="mt-4 sm:mt-5 text-base sm:text-lg text-gray-500 leading-relaxed">
+          <p className="mt-4 sm:mt-5 text-base sm:text-lg text-foreground leading-relaxed">
             A rotating board of churned-daily scoops — classic creams, tropical fruit and indulgent swirls.
           </p>
         </div>
@@ -67,7 +86,7 @@ export default function FlavorMenu() {
                 Couldn&apos;t load menu items right now.
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Check your {`VITE_DIRECTUS_URL`} and the <code className="font-mono">flavors</code> collection.
+                Check your {`VITE_DIRECTUS_URL`} and the <code className="font-mono">Products</code> collection.
               </p>
             </div>
           )}

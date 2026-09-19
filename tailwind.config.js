@@ -31,10 +31,9 @@ export default {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         "brand-red": "#E60000",
-        "brand-cream": "#FDF8F2",
-        "brand-pink": "#FFCCD5",
-        "brand-chocolate": "#3B2824",
         "brand-white": "#FFFFFF",
+        "brand-gray": "#F7F7F7",
+        "brand-charcoal": "#2A2A2A",
       },
       borderColor: { DEFAULT: "hsl(var(--border))" },
       borderRadius: {

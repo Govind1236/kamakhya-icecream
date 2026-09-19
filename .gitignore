@@ -17,6 +17,17 @@ dist
 dist-ssr
 *.local
 
+# Local debug scripts & artifacts
+_*
+!scripts/*
+out.html
+uploads/
+.playwright-mcp/
+
+# Raw source media dropped in project root
+/1080-*.png
+/12747115_*.mp4
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

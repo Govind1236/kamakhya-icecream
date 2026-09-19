@@ -4,45 +4,42 @@
 
 :root {
   /* Shree Mata Kamakhya Ice Cream brand palette */
-  --color-primary: #e60000; /* vibrant red — buttons, active links, highlights */
-  --color-background: #fdf8f2; /* vanilla cream — page background */
-  --color-accent: #ffccd5; /* strawberry pink — alternating sections & cards */
-  --color-foreground: #3b2824; /* dark chocolate — all headings & body text */
+  --color-primary: #e60000; /* vibrant red — buttons, links, highlights, CTA */
+  --color-background: #ffffff; /* pure white — primary page background */
+  --color-secondary: #f7f7f7; /* light gray — footers & alternating sections */
+  --color-foreground: #2a2a2a; /* dark charcoal — all headings & body text */
   --color-navbar: #ffffff; /* pure white — top navigation */
 
-  --background: 33 73% 97%;
-  --foreground: 10 24% 19%;
-  --card: 33 60% 98%;
-  --card-foreground: 10 24% 19%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 16%;
   --popover: 0 0% 100%;
-  --popover-foreground: 10 24% 19%;
+  --popover-foreground: 0 0% 16%;
   --primary: 0 100% 45%;
   --primary-foreground: 0 0% 100%;
-  --primary-glow: 0 90% 56%;
-  --secondary: 350 80% 95%;
-  --secondary-foreground: 10 24% 19%;
-  --muted: 33 40% 95%;
-  --muted-foreground: 15 20% 45%;
-  --accent: 350 100% 90%;
-  --accent-foreground: 10 24% 19%;
+  --primary-glow: 0 100% 50%;
+  --secondary: 0 0% 97%;
+  --secondary-foreground: 0 0% 16%;
+  --muted: 0 0% 97%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 0 0% 97%;
+  --accent-foreground: 0 0% 16%;
   --destructive: 0 100% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 350 50% 90%;
-  --input: 350 50% 92%;
+  --border: 0 0% 90%;
+  --input: 0 0% 92%;
   --ring: 0 100% 45%;
   --radius: 1rem;
-  --glass-border: hsl(350 80% 85% / 0.35);
-  --glow-primary: 0 20px 60px -10px hsl(0 100% 45% / 0.4);
-  --glow-soft: 0 0 80px hsl(0 90% 55% / 0.3);
-  --shadow-elegant: 0 30px 80px -20px hsl(0 100% 45% / 0.25);
-  --shadow-card: 0 20px 50px -25px hsl(350 60% 50% / 0.25);
-  --gradient-bg:
-    radial-gradient(ellipse at top right, hsl(350 100% 95% / 0.8), transparent 55%),
-    radial-gradient(ellipse at bottom left, hsl(0 100% 96% / 0.7), transparent 55%),
-    linear-gradient(180deg, hsl(33 73% 97%) 0%, hsl(33 60% 99%) 100%);
+  --glass-border: hsl(0 0% 88% / 0.5);
+  --glow-primary: 0 20px 60px -10px hsl(0 100% 45% / 0.35);
+  --glow-soft: 0 0 80px hsl(0 100% 45% / 0.22);
+  --shadow-elegant: 0 30px 80px -20px hsl(0 100% 45% / 0.22);
+  --shadow-card: 0 20px 50px -25px hsl(0 0% 0% / 0.18);
+  --gradient-bg: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 100%) 100%);
   --gradient-primary: linear-gradient(135deg, hsl(0 100% 45%), hsl(0 90% 55%));
-  --gradient-strawberry: linear-gradient(135deg, hsl(350 100% 70%), hsl(350 100% 90%));
-  --gradient-text: linear-gradient(135deg, hsl(10 24% 19%), hsl(0 100% 45%));
+  --gradient-cool: linear-gradient(135deg, hsl(0 0% 97%), hsl(0 0% 100%));
+  --gradient-text: linear-gradient(135deg, hsl(0 0% 16%), hsl(0 100% 45%));
 }
 
 @layer base {
@@ -51,8 +48,7 @@
   }
 
   body {
-    background: var(--gradient-bg);
-    background-attachment: fixed;
+    background-color: var(--color-background);
     font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
@@ -88,20 +84,12 @@
     color: transparent;
   }
 
-  .text-strawberry-gradient {
-    background: var(--gradient-strawberry);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-
   .bg-gradient-primary {
     background: var(--gradient-primary);
   }
 
-  .bg-gradient-strawberry {
-    background: var(--gradient-strawberry);
+  .bg-gradient-cool {
+    background: var(--gradient-cool);
   }
 
   .glow-primary {
