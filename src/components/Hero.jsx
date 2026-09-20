@@ -27,7 +27,9 @@ export default function Hero({ initialHero = null, initialProducts = [] }) {
     if (initialProducts.length > 0) return;
     let active = true;
     client
-      .request(readItems("Products", { sort: ["id"] }))
+      .request(
+        readItems("Products", { sort: ["id"] })
+      )
       .then((data) => {
         if (active && data) setProducts(data);
       })

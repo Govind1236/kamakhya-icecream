@@ -2,11 +2,11 @@ export default function Header() {
   return (
     <header className="sticky top-3 sm:top-5 z-50">
       <div className="max-w-7xl mx-auto px-4">
-        <nav className="backdrop-blur-xl bg-black/40 border border-white/30 px-5 sm:px-8 py-3 rounded-2xl sm:rounded-full shadow-lg shadow-black/10 flex items-center justify-between gap-4">
+        <nav className="backdrop-blur-xl bg-black/60 border border-white/20 px-5 sm:px-8 py-3 rounded-2xl sm:rounded-full shadow-lg shadow-black/30 flex items-center justify-between gap-4">
           <a href="#home" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo.png" alt="Kamakhya Icecream logo" className="h-8 sm:h-9 w-auto object-contain" />
-            <span className="font-heading font-bold tracking-tight text-base sm:text-lg text-white">
-              Kamakhya<span className="text-primary">Icecream</span>
+            <img src="/logo.png" alt="Kamakhya Icecream logo" className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]" />
+            <span style={{ color: "#ffffff" }} className="font-heading text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
+              Kamakhya <span className="text-brand-red">Icecream</span>
             </span>
           </a>
           <div className="hidden md:flex items-center gap-7 lg:gap-9">

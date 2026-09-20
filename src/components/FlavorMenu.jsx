@@ -23,7 +23,9 @@ export default function FlavorMenu({ initialFlavors = [] }) {
 
     async function loadFlavors() {
       try {
-        const data = await client.request(readItems("Products", { sort: ["id"] }));
+        const data = await client.request(
+          readItems("Products", { sort: ["id"] })
+        );
         if (active) {
           setFlavors(
             data.map((p) => ({

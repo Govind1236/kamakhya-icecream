@@ -20,7 +20,7 @@ function App({ initialData = null }) {
           <AboutUs initialAbout={initialData?.about ?? null} />
           <Contact initialContact={initialData?.contact ?? null} />
         </main>
-        <Footer />
+        <Footer initialSocial={initialData?.social ?? []} initialContact={initialData?.contact ?? null} />
       </div>
     </FlavorProvider>
   );
