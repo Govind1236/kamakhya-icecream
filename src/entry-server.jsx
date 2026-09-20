@@ -3,7 +3,7 @@ import App from "./App.jsx";
 import { loadPublicData } from "./lib/data.js";
 
 export async function render() {
-  let initial = { flavors: [], hero: null, about: null };
+  let initial = { flavors: [], hero: null, about: null, aboutCards: [] };
   try {
     initial = await loadPublicData();
   } catch (err) {

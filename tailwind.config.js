@@ -42,34 +42,12 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       animation: {
-        float: "float 5s ease-in-out infinite",
-        "float-slow": "float-slow 9s ease-in-out infinite",
         "fade-up": "fade-up 0.7s ease-out forwards",
-        "fade-in": "fade-in 0.6s ease-out forwards",
-        "glow-pulse": "glow-pulse 4s ease-in-out infinite",
-        "spin-slow": "spin-slow 40s linear infinite",
-        "bounce-soft": "bounce-soft 6s ease-in-out infinite",
       },
       keyframes: {
-        float: { "0%, 100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-20px)" } },
-        "float-slow": {
-          "0%, 100%": { transform: "translate(0,0)" },
-          "50%": { transform: "translate(-30px,10px)" },
-        },
         "fade-up": {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in": { from: { opacity: "0" }, to: { opacity: "1" } },
-        "glow-pulse": {
-          "0%, 100%": { opacity: "0.5", transform: "scale(1)" },
-          "50%": { opacity: "0.9", transform: "scale(1.08)" },
-        },
-        "spin-slow": { to: { transform: "rotate(360deg)" } },
-        "bounce-soft": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "25%": { transform: "translateY(-8px)" },
-          "50%": { transform: "translateY(-4px)" },
         },
       },
     },

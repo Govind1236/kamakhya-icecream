@@ -32,9 +32,8 @@ async function main() {
   if (!pub) throw new Error("Could not find the public policy.");
 
   // 1. Create the collection
-  let collection;
   try {
-    collection = await adminRequest("/collections", {
+    await adminRequest("/collections", {
       method: "POST",
       token,
       body: {
