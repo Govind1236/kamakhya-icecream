@@ -95,7 +95,7 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
               </span>
             </a>
             <p className="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-xs">
-              Sweet moments, served daily. Artisan scoops made fresh for homes, celebrations, and every temple-side treat in Guwahati.
+              Sweet moments, served daily. Artisan scoops made fresh for homes, celebrations, and every people around nation.
             </p>
           </div>
 

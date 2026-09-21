@@ -25,15 +25,27 @@ async function adminRequest(path, { method = "GET", body, token } = {}) {
 }
 
 const ABOUT_FIELDS = [
-  ["Heading_L1", "input", "Made Fresh.", 'First line of the big headline (line 1)'],
-  ["Heading_L2", "input", "Made With Love.", 'Second line of the big headline (line 2)'],
-  ["Story_Blurb", "input-multiline", "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.", "Editorial panel paragraph below the heading."],
-  ["Panel_Eyebrow", "input", "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.", "Small eyebrow label above the panel heading."],
-  ["Rated_Value", "input", "4.9", "Rating value shown in the stats strip."],
-  ["Rated_Label", "input", "Rated Locally", "Label for the rating stat."],
-  ["Footline", "input", "Three generations · one recipe book", "Small caption beneath the stats strip."],
-  ["Badge_Made_Label", "input", "Made fresh daily", "Badge on the image, top-left."],
-  ["Badge_Real_Label", "input", "Real fruit · pure cream", "Badge on the image, bottom-left."],
+  // [field, interfaceType, defaultValue, note, dbType]
+  ["Title", "input", "A little scoop of happiness, churned with care every morning.", "Editorial panel heading."],
+  ["Tagline", "input", "Sweet moments, served with a smile.", "Small caption beneath the big headline."],
+  ["Subtitle", "input-multiline", "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.", "Editorial panel paragraph below the heading."],
+  ["Fresh_Cream", "input", "100%", "% fresh cream shown on the image badge."],
+  ["Years_of_Trust", "input", "20+", "Years of trust shown in the stats strip."],
+  ["Displayimage", "file-image", "7ade0628-6c15-42e9-b95d-e8738b66cb2c", "Story image shown in the panel.", "uuid", ["file"]],
+];
+
+// Fields that used to power the newer story-blurb layout. The About Us
+// section is now driven solely by the fields above, so remove any leftovers.
+const DEPRECATED_FIELDS = [
+  "Heading_L1",
+  "Heading_L2",
+  "Story_Blurb",
+  "Panel_Eyebrow",
+  "Rated_Value",
+  "Rated_Label",
+  "Footline",
+  "Badge_Made_Label",
+  "Badge_Real_Label",
 ];
 
 const CARDS = [
@@ -68,8 +80,7 @@ async function main() {
   const existingFields = await adminRequest("/fields/AboutUs", { token });
   const existing = new Set(existingFields.data.map((f) => f.field));
   const updatePayload = {};
-  for (const [field, interfaceType, value, note] of ABOUT_FIELDS) {
-    updatePayload[field] = value;
+  for (const [field, interfaceType, value, note, type = "string", special = []] of ABOUT_FIELDS) {
     if (existing.has(field)) {
       console.log(`skip  AboutUs.${field} (already present)`);
       continue;
@@ -77,16 +88,56 @@ async function main() {
     await adminRequest("/fields/AboutUs", {
       method: "POST",
       token,
-      body: { field, type: "string", meta: { interface: interfaceType, width: "full", note } },
+      body: { field, type, meta: { interface: interfaceType, width: "full", note, ...(special.length ? { special } : {}) } },
     });
     console.log(`add   AboutUs.${field}`);
+    // Only set a default for fields that are brand new so existing
+    // content is never overwritten.
+    updatePayload[field] = value;
   }
 
-  // 2. Update the singleton AboutUs item (id 1) with the values.
-  const patch = await adminRequest("/items/AboutUs/1", { method: "PATCH", token, body: updatePayload });
-  console.log("patched AboutUs item:", patch.data.id);
+  // Ensure the story image field is wired to directus_files the same way as
+  // Products.Product_Image so the upload/choose control works in the admin.
+  const existingRelations = await adminRequest("/relations?limit=-1", { token });
+  const hasImageRel = existingRelations.data.some(
+    (r) => r.collection === "AboutUs" && r.field === "Displayimage"
+  );
+  if (!hasImageRel) {
+    await adminRequest("/relations", {
+      method: "POST",
+      token,
+      body: {
+        collection: "AboutUs",
+        field: "Displayimage",
+        related_collection: "directus_files",
+        schema: { on_update: "NO ACTION", on_delete: "SET NULL" },
+        meta: { one_deselect_action: "nullify" },
+      },
+    });
+    console.log("rel   AboutUs.Displayimage -> directus_files");
+  } else {
+    console.log("skip  AboutUs.Displayimage relation (already present)");
+  }
 
-  // 3. Seed AboutUsItem cards.
+  // 2. Remove leftover fields from the old about layout.
+  for (const field of DEPRECATED_FIELDS) {
+    if (!existing.has(field)) {
+      console.log(`skip  AboutUs.${field} (not present)`);
+      continue;
+    }
+    await adminRequest(`/fields/AboutUs/${field}`, { method: "DELETE", token });
+    console.log(`rm    AboutUs.${field}`);
+  }
+
+  // 3. Update the singleton AboutUs item (id 1) with only newly added values.
+  if (Object.keys(updatePayload).length > 0) {
+    const patch = await adminRequest("/items/AboutUs/1", { method: "PATCH", token, body: updatePayload });
+    console.log("patched AboutUs item:", patch.data.id);
+  } else {
+    console.log("no new AboutUs fields to patch");
+  }
+
+  // 4. Seed AboutUsItem cards.
   const items = await adminRequest("/items/AboutUsItem?limit=-1", { token });
   const titles = new Set(items.data.map((i) => i.Title));
   for (const card of CARDS) {

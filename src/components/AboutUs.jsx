@@ -84,7 +84,8 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
   const storyIntro =
     "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.";
 
-  const cardBlurb = storyIntro;
+  const tagline = about?.Tagline || "Sweet moments, served with a smile.";
+  const cardBlurb = about?.Subtitle || storyIntro;
 
   const storyImage = getAssetUrl(about?.Displayimage ?? STORY_IMAGE);
 
@@ -93,6 +94,15 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
 
   const heading =
     about?.Title || "A little scoop of happiness, churned with care every morning.";
+
+  const headingLineOne = about?.Heading_L1 || "Made Fresh.";
+  const headingLineTwo = about?.Heading_L2 || "Made With Love.";
+  const ratedValue = about?.Rated_Value || "4.9";
+  const ratedLabel = about?.Rated_Label || "Rated Locally";
+  const footline =
+    about?.Footline || "Three generations · one recipe book";
+  const madeBadge = about?.Badge_Made_Label || "Made fresh daily";
+  const realBadge = about?.Badge_Real_Label || "Real fruit · pure cream";
 
   const chapters = cards.map((card, i) => ({
     index: String(i + 1).padStart(2, "0"),
@@ -131,25 +141,18 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
             className="mt-5 sm:mt-6 font-heading text-[2.5rem] font-extrabold leading-[1.04] tracking-tight sm:text-5xl md:text-6xl"
           >
             <span className="block overflow-hidden py-0.5">
-              <motion.span variants={lineReveal} transition={{ duration: 0.9, ease: easeOut }} className="block text-gradient">Made Fresh.</motion.span>
+              <motion.span variants={lineReveal} transition={{ duration: 0.9, ease: easeOut }} className="block text-gradient">{headingLineOne}</motion.span>
             </span>
             <span className="block overflow-hidden py-0.5">
-              <motion.span variants={lineReveal} transition={{ duration: 0.9, ease: easeOut, delay: 0.12 }} className="block text-gradient">Made With Love.</motion.span>
+              <motion.span variants={lineReveal} transition={{ duration: 0.9, ease: easeOut, delay: 0.12 }} className="block text-gradient">{headingLineTwo}</motion.span>
             </span>
           </motion.h2>
 
           <motion.p
             variants={fadeUp}
-            className="mx-auto mt-6 sm:mt-7 max-w-2xl text-base sm:text-lg md:text-xl text-foreground font-medium leading-relaxed sm:leading-[1.85]"
-          >
-            {storyIntro}
-          </motion.p>
-
-          <motion.p
-            variants={fadeUp}
             className="mt-5 font-serif italic text-lg sm:text-xl text-foreground/70"
           >
-            {`Sweet moments, served with a smile.`}
+            {tagline}
           </motion.p>
         </motion.div>
 
@@ -184,14 +187,14 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" aria-hidden="true" />
 
               <span className="glass bg-white/80 border-white/70 rounded-full px-4 py-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-primary shadow-[0_8px_24px_-8px_hsl(0_0%_0%/0.2)] absolute left-4 sm:left-6 top-4 sm:top-6">
-                Made fresh daily
+                {madeBadge}
               </span>
               <span className="hidden sm:flex glass bg-white/80 border-white/70 rounded-full px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] font-bold text-foreground shadow-[0_8px_24px_-8px_hsl(0_0%_0%/0.2)] absolute right-5 top-5 items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-brand-red animate-pulse" aria-hidden="true" />
                 {freshCream} fresh cream
               </span>
               <span className="glass bg-black/45 border-white/20 rounded-full px-4 py-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-bold text-white shadow-[0_8px_24px_-8px_hsl(0_0%_0%/0.3)] absolute bottom-5 left-5 items-center gap-2 hidden sm:inline-flex">
-                Real fruit · pure cream
+                {realBadge}
                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 21s-7.5-4.6-10-9.5C.4 8.2 2.5 4.5 6 4.5c2.1 0 3.7 1.1 6 3.6 2.3-2.5 3.9-3.6 6-3.6 3.5 0 5.6 3.7 4 7-.7 1.4-2 2.9-2 2.9S12 21 12 21z" fill="currentColor" />
                 </svg>
@@ -200,9 +203,6 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
 
             {/* Editorial panel */}
             <div className="relative flex flex-col justify-center p-7 sm:p-10 lg:p-14">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-primary font-bold">
-                {storyIntro}
-              </p>
               <h3 className="mt-4 font-heading text-2xl sm:text-3xl md:text-[2.1rem] font-extrabold leading-tight tracking-tight text-foreground">
                 {heading}
               </h3>
@@ -220,13 +220,13 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
                   <dt className="mt-1 text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Years of Trust</dt>
                 </div>
                 <div>
-                  <dd className="font-heading text-2xl sm:text-3xl font-extrabold text-foreground">4.9<span className="text-primary">★</span></dd>
-                  <dt className="mt-1 text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Rated Locally</dt>
+                  <dd className="font-heading text-2xl sm:text-3xl font-extrabold text-foreground">{ratedValue}<span className="text-primary">★</span></dd>
+                  <dt className="mt-1 text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">{ratedLabel}</dt>
                 </div>
               </dl>
 
               <p className="mt-7 text-xs sm:text-sm text-muted-foreground font-semibold uppercase tracking-[0.16em]">
-                Three generations · one recipe book
+                {footline}
               </p>
             </div>
           </div>

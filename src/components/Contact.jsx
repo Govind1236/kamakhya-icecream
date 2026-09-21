@@ -4,15 +4,7 @@ import { client } from "../lib/directus";
 
 const initialForm = { Name: "", Email: "", Phone: "", Message: "" };
 
-function telHref(number) {
-  if (!number) return "#contact";
-  return `tel:+${number.replace(/\D/g, "")}`;
-}
 
-function emailHref(email) {
-  if (!email) return "#contact";
-  return `mailto:${email}`;
-}
 
 export default function Contact({ initialContact = null }) {
   const [info, setInfo] = useState(initialContact);
@@ -89,9 +81,6 @@ export default function Contact({ initialContact = null }) {
                 {phone}<br />
                 {hours}
               </p>
-              <a href={telHref(phone)} className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-input bg-background px-5 h-10 text-xs sm:text-sm font-semibold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-                Call the Parlour
-              </a>
             </div>
 
             <div className="rounded-3xl bg-white p-5 sm:p-6 md:p-7 border border-primary/10 shadow-[0_4px_30px_-8px_hsl(0_0%_0%/0.08)] transition-all duration-500 hover:-translate-y-2 hover:border-primary/40">
@@ -108,9 +97,6 @@ export default function Contact({ initialContact = null }) {
                 {email}<br />
                 We reply within 24 hours.
               </p>
-              <a href={emailHref(email)} className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-input bg-background px-5 h-10 text-xs sm:text-sm font-semibold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-                Send an Email
-              </a>
             </div>
 
             <div className="rounded-3xl bg-white p-5 sm:p-6 md:p-7 border border-primary/10 shadow-[0_4px_30px_-8px_hsl(0_0%_0%/0.08)] transition-all duration-500 hover:-translate-y-2 hover:border-primary/40">
@@ -126,9 +112,6 @@ export default function Contact({ initialContact = null }) {
               <p className="mt-5 text-base sm:text-lg text-foreground leading-relaxed whitespace-pre-line">
                 {address}
               </p>
-              <a href="#visit" className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-input bg-background px-5 h-10 text-xs sm:text-sm font-semibold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-                Store Hours &amp; Directions
-              </a>
             </div>
           </div>
 
