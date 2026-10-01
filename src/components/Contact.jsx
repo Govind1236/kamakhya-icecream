@@ -4,28 +4,12 @@ import { client } from "../lib/directus";
 
 const initialForm = { Name: "", Email: "", Phone: "", Message: "" };
 
+// Static presentation only. Every user-facing value (phone, hours, email,
+// address, map link) comes from the ContactUs collection.
 const details = [
-  {
-    id: "call",
-    title: "Call Us",
-    primary: "+977 9823800422",
-    secondary: "Sun – Sat, 7:30 AM – 9:30 PM",
-    href: "tel:+9779823800422",
-  },
-  {
-    id: "email",
-    title: "Email Us",
-    primary: "kamakhyaicecream@gmail.com",
-    secondary: "We reply within 24 hours.",
-    href: "mailto:kamakhyaicecream@gmail.com",
-  },
-  {
-    id: "visit",
-    title: "Visit the Parlour",
-    primary: "Arjundhara - 06, Pushpalal Chowk",
-    secondary: "Come say hello and taste what's fresh.",
-    href: "https://maps.google.com/maps?q=Arjundhara%20-%2006%2C%20Pushpalal%20Chowk&output=embed",
-  },
+  { id: "call", title: "Call Us", secondary: "" },
+  { id: "email", title: "Email Us", secondary: "We reply within 24 hours." },
+  { id: "visit", title: "Visit the Parlour", secondary: "Come say hello and taste what's fresh." },
 ];
 
 const detailIcons = {
@@ -130,20 +114,24 @@ export default function Contact({ initialContact = null }) {
     };
   }, [initialContact]);
 
-  const call = details[0];
-  const email = details[1];
-  const visit = details[2];
-
   const cards = [
     {
-      ...call,
-      primary: info?.ContactNumber || call.primary,
-      secondary: info?.OpenHours || call.secondary,
-      href: info?.ContactNumber ? `tel:+${info.ContactNumber.replace(/\D/g, "")}` : call.href,
+      ...details[0],
+      primary: info?.ContactNumber ?? "",
+      secondary: info?.OpenHours ?? "",
+      href: info?.ContactNumber ? `tel:+${info.ContactNumber.replace(/\D/g, "")}` : null,
     },
-    { ...email, primary: info?.Email || email.primary },
-    { ...visit, primary: info?.Map || visit.primary },
-  ];
+    {
+      ...details[1],
+      primary: info?.Email ?? "",
+      href: info?.Email ? `mailto:${info.Email.trim()}` : null,
+    },
+    {
+      ...details[2],
+      primary: info?.Address ?? "",
+      href: info?.MapLink || null,
+    },
+  ].filter((card) => card.primary);
 
   return (
     <section id="contact" className="relative overflow-hidden bg-brand-gray py-16 sm:py-24 md:py-28">
@@ -168,12 +156,12 @@ export default function Contact({ initialContact = null }) {
         </div>
 
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2 lg:gap-10">
-          <div className="grid gap-4 sm:gap-5 lg:h-full lg:grid-rows-3">
+          <div className="grid gap-4 sm:gap-5 lg:h-full lg:auto-rows-fr">
             {cards.map((card) => (
               <DetailCard
                 key={card.id}
                 {...card}
-                external={card.id === "visit"}
+                external={/^https?:/i.test(card.href ?? "")}
               />
             ))}
           </div>
@@ -233,7 +221,7 @@ export default function Contact({ initialContact = null }) {
                   autoComplete="tel"
                   value={form.Phone}
                   onChange={handleChange}
-                  placeholder="+91 98765 43210"
+                  placeholder={info?.ContactNumber ?? "Your phone number"}
                   className={fieldClass}
                 />
               </div>

@@ -41,34 +41,6 @@ const SEEDS = {
     "https://maps.google.com/maps?q=Shree%20Mata%20Kamakhya%20Ice-cream%20Udhyog%2C%20Shani%20Arjun%2C%20Koshi%20Province%206&z=16&output=embed",
 };
 
-// Re-interprets a string that was decoded as windows-1252 instead of utf-8, so
-// "â€“" becomes "–". Returns the input untouched when nothing changes.
-function decodeMojibake(value) {
-  if (!/[\u0080-\u00ff]/.test(value)) return value;
-  try {
-    // windows-1252 remaps 0x80-0x9F to printable glyphs, so build the reverse
-    // lookup table from the decoder itself instead of using charCodeAt.
-    const cp1252 = new TextDecoder("windows-1252");
-    const byteFor = new Map();
-    for (let byte = 0; byte < 256; byte += 1) {
-      const char = cp1252.decode(Uint8Array.of(byte));
-      if (char.length === 1) byteFor.set(char, byte);
-    }
-
-    const bytes = [];
-    for (const char of value) {
-      const byte = byteFor.get(char);
-      if (byte === undefined) return value;
-      bytes.push(byte);
-    }
-
-    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(bytes));
-    return decoded === value ? value : decoded;
-  } catch {
-    return value;
-  }
-}
-
 async function main() {
   const login = await adminRequest("/auth/login", {
     method: "POST",
@@ -92,8 +64,7 @@ async function main() {
     console.log(`add   ContactUs.${field}`);
   }
 
-  // 2. Migrate the legacy `Map` value into `Address` before anything reads it,
-  //    and repair text that was stored with the wrong encoding.
+  // 2. Migrate the legacy `Map` value into `Address` before anything reads it.
   const items = await adminRequest("/items/ContactUs?limit=-1", { token });
   const patch = {};
   for (const item of items.data) {
@@ -101,18 +72,6 @@ async function main() {
     if (legacyAddress && !item.Address) {
       patch.Address = legacyAddress;
       console.log(`move  ContactUs/${item.id}.Map -> Address`);
-    }
-
-    // Values typed through a shell once came back as UTF-8 bytes read as
-    // latin-1 ("â€“" instead of "–"). Re-decode them.
-    for (const field of ["OpenHours", "Email", "ContactNumber", "Address"]) {
-      const value = patch[field] ?? item[field];
-      if (typeof value !== "string") continue;
-      const fixed = decodeMojibake(value);
-      if (fixed !== value && !patch[field]) {
-        patch[field] = fixed;
-        console.log(`fix   ContactUs/${item.id}.${field} encoding`);
-      }
     }
   }
 

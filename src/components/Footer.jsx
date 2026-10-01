@@ -37,15 +37,28 @@ function SocialIcon({ platform }) {
 }
 
 function telHref(number) {
-  if (!number) return "#contact";
+  if (!number) return null;
   return `tel:+${number.replace(/\D/g, "")}`;
 }
 
+function mailtoHref(email) {
+  if (!email) return null;
+  return `mailto:${email.trim()}`;
+}
+
+// Returns a usable absolute URL, or null when the stored value isn't one.
+// Guards against CMS rows saved as "example.com" or wrapped in backticks.
 function safeUrl(url) {
-  if (!url) return "#";
-  const trimmed = url.trim();
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
+  if (typeof url !== "string") return null;
+  const trimmed = url.trim().replace(/^`+|`+$/g, "").trim();
+  if (!trimmed) return null;
+  const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const parsed = new URL(withScheme);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
+  } catch {
+    return null;
+  }
 }
 
 export default function Footer({ initialSocial = [], initialContact = null }) {
@@ -84,11 +97,17 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
     };
   }, [initialContact]);
 
-  const phone = info?.ContactNumber || "+91 98765 43210";
-  const email = info?.Email || "hello@kamakhyaicecream.in";
-  const hours = info?.OpenHours || "Mon – Sun, 11 AM – 9:30 PM";
-  const address =
-    info?.Map || "Kamakhya Icecream, 42 Market Road, near Temple Gate, Guwahati, Assam 781001";
+  const phone = info?.ContactNumber ?? "";
+  const email = info?.Email ?? "";
+  const hours = info?.OpenHours ?? "";
+  const address = info?.Address ?? "";
+  const mapLink = safeUrl(info?.MapLink);
+  const mapEmbed = safeUrl(info?.MapEmbed);
+
+  const socialItems = socials
+    .filter((s) => s?.Platform)
+    .map((s) => ({ ...s, href: safeUrl(s.Link) }))
+    .filter((s) => s.href);
 
   return (
     <footer className="bg-brand-gray">
@@ -119,71 +138,90 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
           <div className="space-y-4">
             <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Contact</div>
             <ul className="space-y-3">
-              <li>
-                <a href={telHref(phone)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                  {phone}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
-                    <rect width="20" height="16" x="2" y="4" rx="2" />
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                  </svg>
-                  {email}
-                </a>
-              </li>
-              <li>
-                <div className="flex items-start gap-2 text-sm text-gray-500">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} mt-0.5 text-primary`}>
-                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>{address}</span>
-                </div>
-              </li>
-              <li>
-                <div className="flex items-start gap-2 text-sm text-gray-500">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} mt-0.5 text-primary`}>
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span>{hours}</span>
-                </div>
-              </li>
+              {phone && (
+                <li>
+                  <a href={telHref(phone)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    {phone}
+                  </a>
+                </li>
+              )}
+              {email && (
+                <li>
+                  <a href={mailtoHref(email)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    {email}
+                  </a>
+                </li>
+              )}
+              {address && (
+                <li>
+                  <div className="flex items-start gap-2 text-sm text-gray-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} mt-0.5 text-primary`}>
+                      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>{address}</span>
+                  </div>
+                </li>
+              )}
+              {hours && (
+                <li>
+                  <div className="flex items-start gap-2 text-sm text-gray-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} mt-0.5 text-primary`}>
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>{hours}</span>
+                  </div>
+                </li>
+              )}
             </ul>
           </div>
 
           <div className="space-y-4">
             <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Our Location</div>
             <ul className="space-y-3">
-              <li className="space-y-1">
-                <div className="text-xs font-bold tracking-wider text-foreground uppercase">Head Office</div>
-                <a
-                  href="https://share.google/gmhjPcFdxrLkzav4u"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
-                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  Arjundhara - 06, Pushpalal Chowk
-                </a>
-              </li>
-              <li className="space-y-2">
-                <div className="text-xs font-bold tracking-wider text-foreground uppercase">Follow Us</div>
-                <div className="flex items-center gap-3">
-                  {socials
-                    .filter((s) => s?.Platform)
-                    .map((s) => (
+              {(address || mapLink) && (
+                <li className="space-y-1">
+                  <div className="text-xs font-bold tracking-wider text-foreground uppercase">Head Office</div>
+                  {mapLink ? (
+                    <a
+                      href={mapLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
+                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {address}
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconClass} text-primary`}>
+                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {address}
+                    </div>
+                  )}
+                </li>
+              )}
+              {socialItems.length > 0 && (
+                <li className="space-y-2">
+                  <div className="text-xs font-bold tracking-wider text-foreground uppercase">Follow Us</div>
+                  <div className="flex items-center gap-3">
+                    {socialItems.map((s) => (
                       <a
                         key={s.id}
-                        href={safeUrl(s.Link)}
+                        href={s.href}
                         aria-label={s.Platform}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -192,22 +230,25 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
                         <SocialIcon platform={s.Platform} />
                       </a>
                     ))}
-                </div>
-              </li>
+                  </div>
+                </li>
+              )}
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-gray-100 shadow-md">
-          <iframe
-            title="Shree Mata Kamakhya Ice-cream Udhyog — Find us"
-            src="https://maps.google.com/maps?q=Shree%20Mata%20Kamakhya%20Ice-cream%20Udhyog%2C%20Shani%20Arjun%2C%20Koshi%20Province%206&z=16&output=embed"
-            className="w-full h-[200px] sm:h-[260px] border-0 grayscale-[0.15] contrast-[1.05]"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        </div>
+        {mapEmbed && (
+          <div className="mt-10 overflow-hidden rounded-2xl border border-gray-100 shadow-md">
+            <iframe
+              title={`${address || "Our"} location map`}
+              src={mapEmbed}
+              className="w-full h-[200px] sm:h-[260px] border-0 grayscale-[0.15] contrast-[1.05]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 sm:pt-10 mt-10 border-t border-gray-100">
           <p className="text-xs text-gray-400">© {new Date().getFullYear()} Kamakhya Icecream. All rights reserved.</p>
