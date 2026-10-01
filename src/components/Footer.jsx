@@ -106,8 +106,7 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
 
   const socialItems = socials
     .filter((s) => s?.Platform)
-    .map((s) => ({ ...s, href: safeUrl(s.Link) }))
-    .filter((s) => s.href);
+    .map((s) => ({ ...s, href: safeUrl(s.Link) }));
 
   return (
     <footer className="bg-brand-gray">
@@ -218,18 +217,29 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
                 <li className="space-y-2">
                   <div className="text-xs font-bold tracking-wider text-foreground uppercase">Follow Us</div>
                   <div className="flex items-center gap-3">
-                    {socialItems.map((s) => (
-                      <a
-                        key={s.id}
-                        href={s.href}
-                        aria-label={s.Platform}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={socialLinkClass}
-                      >
-                        <SocialIcon platform={s.Platform} />
-                      </a>
-                    ))}
+                    {socialItems.map((s) =>
+                      s.href ? (
+                        <a
+                          key={s.id}
+                          href={s.href}
+                          aria-label={s.Platform}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={socialLinkClass}
+                        >
+                          <SocialIcon platform={s.Platform} />
+                        </a>
+                      ) : (
+                        <span
+                          key={s.id}
+                          aria-label={`${s.Platform} (link not set)`}
+                          title={`${s.Platform} link not set in CMS`}
+                          className={`${socialLinkClass} opacity-40 cursor-not-allowed`}
+                        >
+                          <SocialIcon platform={s.Platform} />
+                        </span>
+                      )
+                    )}
                   </div>
                 </li>
               )}

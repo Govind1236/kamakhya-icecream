@@ -9,6 +9,7 @@ import {
 import { readItems } from "@directus/sdk";
 import { client, getAssetUrl } from "../lib/directus";
 import { buildHeroSlides, FALLBACK_HERO } from "../lib/heroCatalog";
+import { buildWhatsAppUrl } from "../lib/whatsapp";
 import HeroArt from "./HeroArt";
 
 const ROTATE_MS = 4500;
@@ -51,11 +52,12 @@ function CartIcon() {
   );
 }
 
-export default function AvocadoHero({ initialFlavors = [] }) {
+export default function AvocadoHero({ initialFlavors = [], initialContact = null }) {
   const reduced = useReducedMotion();
   const sectionRef = useRef(null);
 
   const [products, setProducts] = useState(() => initialFlavors);
+  const [contact, setContact] = useState(initialContact);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -66,6 +68,13 @@ export default function AvocadoHero({ initialFlavors = [] }) {
   const current = displaySlides[safeIndex];
   const hasMultiple = slideCount > 1;
   const currentImage = getAssetUrl(current?.image);
+
+  // Prefills the chat with the flavour currently on screen so the customer
+  // doesn't have to retype what they just tapped.
+  const orderUrl = buildWhatsAppUrl(
+    contact?.ContactNumber,
+    `Hi Kamakhya Icecream! I'd like to order ${current?.name ?? "ice cream"}.`
+  );
 
   useEffect(() => {
     if (initialFlavors.length > 0) return;
@@ -80,6 +89,21 @@ export default function AvocadoHero({ initialFlavors = [] }) {
       activeFlag = false;
     };
   }, [initialFlavors]);
+
+  // WhatsApp number for the Buy Now CTA.
+  useEffect(() => {
+    if (initialContact) return;
+    let activeFlag = true;
+    client
+      .request(readItems("ContactUs", { limit: 1 }))
+      .then((data) => {
+        if (activeFlag && data && data.length > 0) setContact(data[0]);
+      })
+      .catch(() => {});
+    return () => {
+      activeFlag = false;
+    };
+  }, [initialContact]);
 
   // Auto-rotate. Re-keying on `active` means a manual selection also resets the timer.
   useEffect(() => {
@@ -320,8 +344,10 @@ export default function AvocadoHero({ initialFlavors = [] }) {
 
                     {/* CTA */}
                     <div className="mt-7">
-                      <button
-                        type="button"
+                      <a
+                        href={orderUrl ?? "#contact"}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="group inline-flex h-[3.25rem] items-center gap-2.5 rounded-full px-9 text-sm font-bold uppercase tracking-wider shadow-[0_18px_40px_-12px_rgba(230,0,0,0.5)] transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0"
                         style={button}
                       >
@@ -331,7 +357,7 @@ export default function AvocadoHero({ initialFlavors = [] }) {
                           <path d="M5 12h14" />
                           <path d="m13 6 6 6-6 6" />
                         </svg>
-                      </button>
+                      </a>
                     </div>
                   </motion.div>
                 </AnimatePresence>

@@ -10,9 +10,9 @@ function App({ initialData = null }) {
   return (
     <div className="relative z-10">
       <SvgDefs />
-      <Header />
+      <Header initialContact={initialData?.contact ?? null} />
       <main id="home">
-        <AvocadoHero initialFlavors={initialData?.flavors ?? []} />
+        <AvocadoHero initialFlavors={initialData?.flavors ?? []} initialContact={initialData?.contact ?? null} />
         <FlavorMenu initialFlavors={initialData?.flavors ?? []} />
         <AboutUs initialAbout={initialData?.about ?? null} initialCards={initialData?.aboutCards ?? []} />
         <Contact initialContact={initialData?.contact ?? null} />

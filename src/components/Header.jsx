@@ -1,4 +1,30 @@
-export default function Header() {
+import { useEffect, useState } from "react";
+import { readItems } from "@directus/sdk";
+import { client } from "../lib/directus";
+import { buildWhatsAppUrl } from "../lib/whatsapp";
+
+export default function Header({ initialContact = null }) {
+  const [contact, setContact] = useState(initialContact);
+
+  useEffect(() => {
+    if (initialContact) return;
+    let active = true;
+    client
+      .request(readItems("ContactUs", { limit: 1 }))
+      .then((data) => {
+        if (active && data && data.length > 0) setContact(data[0]);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [initialContact]);
+
+  const orderUrl = buildWhatsAppUrl(
+    contact?.ContactNumber,
+    "Hi Kamakhya Icecream! I'd like to place an order."
+  );
+
   return (
     <header className="sticky top-3 sm:top-5 z-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -15,7 +41,12 @@ export default function Header() {
             <a href="#about" className="text-sm font-semibold text-[#2A2A2A]/70 hover:text-brand-red transition-colors duration-200">About Us</a>
             <a href="#contact" className="text-sm font-semibold text-[#2A2A2A]/70 hover:text-brand-red transition-colors duration-200">Contact</a>
           </div>
-          <a href="#contact" className="bg-brand-red text-white rounded-full px-4 sm:px-5 h-9 sm:h-10 inline-flex items-center gap-2 font-semibold text-xs sm:text-sm border-none hover:brightness-110 hover:shadow-[0_18px_40px_-12px_rgba(230,0,0,0.6)] transition-all duration-300">
+          <a
+            href={orderUrl ?? "#contact"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-brand-red text-white rounded-full px-4 sm:px-5 h-9 sm:h-10 inline-flex items-center gap-2 font-semibold text-xs sm:text-sm border-none hover:brightness-110 hover:shadow-[0_18px_40px_-12px_rgba(230,0,0,0.6)] transition-all duration-300"
+          >
             Order Now
           </a>
         </nav>
