@@ -5,8 +5,8 @@ export default function Header() {
         <nav className="backdrop-blur-xl bg-white/45 border border-white/60 px-5 sm:px-8 py-3 rounded-2xl sm:rounded-full shadow-[0_20px_50px_-20px_rgba(230,0,0,0.3)] flex items-center justify-between gap-4">
           <a href="#home" className="flex items-center gap-2.5 shrink-0">
             <img src="/logo.png" alt="Kamakhya Icecream logo" className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(230,0,0,0.2)]" />
-            <span style={{ color: "#2A2A2A" }} className="font-heading text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap">
-              Kamakhya <span style={{ color: "#E60000" }}>Icecream</span>
+            <span style={{ color: "#E60000" }} className="font-heading text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap">
+              Kamakhya <span style={{ color: "#2A2A2A" }}>Icecream</span>
             </span>
           </a>
           <div className="hidden md:flex items-center gap-7 lg:gap-9">

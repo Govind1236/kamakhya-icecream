@@ -41,6 +41,13 @@ function telHref(number) {
   return `tel:+${number.replace(/\D/g, "")}`;
 }
 
+function safeUrl(url) {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export default function Footer({ initialSocial = [], initialContact = null }) {
   const [socials, setSocials] = useState(initialSocial);
   const [info, setInfo] = useState(initialContact);
@@ -176,7 +183,7 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
                     .map((s) => (
                       <a
                         key={s.id}
-                        href={s.Link || "#"}
+                        href={safeUrl(s.Link)}
                         aria-label={s.Platform}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -205,7 +212,7 @@ export default function Footer({ initialSocial = [], initialContact = null }) {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 sm:pt-10 mt-10 border-t border-gray-100">
           <p className="text-xs text-gray-400">© {new Date().getFullYear()} Kamakhya Icecream. All rights reserved.</p>
           <p className="text-xs text-gray-400">
-            Crafted with love in Assam by{" "}
+            Crafted with love by{" "}
             <a href="https://codesparks.com.np" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
               Codesparks Technology Pvt Ltd
             </a>
