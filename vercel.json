@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/client",
   "functions": {
     "api/ssr.js": {
@@ -11,6 +11,7 @@
   },
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/(.*\\.(png|jpg|jpeg|gif|webp|svg|ico))", "destination": "/$1" },
     { "source": "/(.*)", "destination": "/api/ssr" }
   ]
 }

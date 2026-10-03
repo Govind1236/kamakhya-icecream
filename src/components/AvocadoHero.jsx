@@ -67,7 +67,7 @@ export default function AvocadoHero({ initialFlavors = [], initialContact = null
   const safeIndex = slideCount > 0 ? active % slideCount : 0;
   const current = displaySlides[safeIndex];
   const hasMultiple = slideCount > 1;
-  const currentImage = getAssetUrl(current?.image);
+  const currentImage = getAssetUrl(current?.image, current?.name || current?.theme?.key);
 
   // Prefills the chat with the flavour currently on screen so the customer
   // doesn't have to retype what they just tapped.

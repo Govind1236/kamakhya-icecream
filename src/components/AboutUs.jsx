@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import ScoopSvg from "./ScoopSvg";
 
 const STORY_IMAGE = "7ade0628-6c15-42e9-b95d-e8738b66cb2c";
+const STORY_FALLBACK_KEY = "about story";
 
 const easeOut = [0.22, 1, 0.36, 1];
 
@@ -87,7 +88,7 @@ export default function AboutUs({ initialAbout = null, initialCards = [] }) {
   const tagline = about?.Tagline || "Sweet moments, served with a smile.";
   const cardBlurb = about?.Subtitle || storyIntro;
 
-  const storyImage = getAssetUrl(about?.Displayimage ?? STORY_IMAGE);
+  const storyImage = getAssetUrl(about?.Displayimage ?? STORY_IMAGE, STORY_FALLBACK_KEY);
 
   const freshCream = about?.Fresh_Cream || "100%";
   const yearsOfTrust = about?.Years_of_Trust || "20+";

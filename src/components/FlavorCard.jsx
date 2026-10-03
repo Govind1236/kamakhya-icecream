@@ -13,7 +13,8 @@ function formatPrice(price) {
 }
 
 export default function FlavorCard({ flavor, index = 0 }) {
-  const imageUrl = getAssetUrl(flavor.image) || getAssetUrl(flavor.image_file);
+  const fallbackKey = flavor.name || flavor.Name || "";
+  const imageUrl = getAssetUrl(flavor.image || flavor.image_file, fallbackKey);
   const isSecondary =
     flavor.badgeVariant === "secondary" || flavor.badge_variant === "secondary";
   const badgeClasses = isSecondary

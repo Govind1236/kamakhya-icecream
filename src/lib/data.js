@@ -1,5 +1,5 @@
 import { readItems } from "@directus/sdk";
-import { getClient } from "./directus";
+import { getClient, fallbackImages } from "./directus";
 
 export async function loadPublicData() {
   const client = getClient();
@@ -19,9 +19,14 @@ export async function loadPublicData() {
         client.request(readItems("SocialMedia")).catch(() => []),
       ]);
 
+    const flavorsWithImages = (products ?? []).map((p) => ({
+      ...p,
+      Image: p.Image || getFallbackImageForFlavor(p.Name),
+    }));
+
     return {
       hero: heroItems?.[0] ?? null,
-      flavors: products ?? [],
+      flavors: flavorsWithImages,
       about: aboutItems?.[0] ?? null,
       aboutCards: aboutCards ?? [],
       contact: contactItems?.[0] ?? null,
@@ -33,13 +38,21 @@ export async function loadPublicData() {
   }
 }
 
+function getFallbackImageForFlavor(name) {
+  const lowerName = (name || "").toLowerCase();
+  if (lowerName.includes("vanilla")) return fallbackImages.vanilla;
+  if (lowerName.includes("chocolate")) return fallbackImages.chocolate;
+  if (lowerName.includes("strawberry")) return fallbackImages.strawberry;
+  return fallbackImages.default;
+}
+
 function getFallbackData() {
   return {
     hero: null,
     flavors: [
-      { id: 1, Name: "Vanilla", Description: "Classic creamy vanilla", Price: 50, Image: null, Sort: 1 },
-      { id: 2, Name: "Chocolate", Description: "Rich dark chocolate", Price: 60, Image: null, Sort: 2 },
-      { id: 3, Name: "Strawberry", Description: "Fresh strawberry delight", Price: 55, Image: null, Sort: 3 },
+      { id: 1, Name: "Vanilla", Description: "Classic creamy vanilla", Price: 50, Image: fallbackImages.vanilla, Sort: 1 },
+      { id: 2, Name: "Chocolate", Description: "Rich dark chocolate", Price: 60, Image: fallbackImages.chocolate, Sort: 2 },
+      { id: 3, Name: "Strawberry", Description: "Fresh strawberry delight", Price: 55, Image: fallbackImages.strawberry, Sort: 3 },
     ],
     about: null,
     aboutCards: [],
@@ -57,5 +70,11 @@ export async function loadPublicDataByEntry(entry) {
     entry?.contact ?? null,
     entry?.social ?? [],
   ]);
-  return { hero, flavors, about, aboutCards, contact, social };
+
+  const flavorsWithImages = (flavors ?? []).map((f) => ({
+    ...f,
+    Image: f.Image || getFallbackImageForFlavor(f.Name),
+  }));
+
+  return { hero, flavors: flavorsWithImages, about, aboutCards, contact, social };
 }

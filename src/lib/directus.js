@@ -17,6 +17,25 @@ export const PLATFORM =
   (typeof process !== "undefined" && process.env?.VITE_PLATFORM) ||
   "web";
 
+const fallbackImages = {
+  vanilla: "https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=600&auto=format&fit=crop&q=80",
+  chocolate: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop&q=80",
+  strawberry: "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?w=600&auto=format&fit=crop&q=80",
+  default: "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&auto=format&fit=crop&q=80",
+};
+
+function isLocalhostUrl(url) {
+  return url && url.includes("localhost:8055");
+}
+
+function getFallbackImage(key) {
+  const lowerKey = (key || "").toLowerCase();
+  if (lowerKey.includes("vanilla")) return fallbackImages.vanilla;
+  if (lowerKey.includes("chocolate")) return fallbackImages.chocolate;
+  if (lowerKey.includes("strawberry")) return fallbackImages.strawberry;
+  return fallbackImages.default;
+}
+
 let _client = null;
 function createClient() {
   try {
@@ -38,14 +57,19 @@ export const client = new Proxy({}, {
   get(_, prop) {
     const c = getClient();
     if (!c) {
-      // Return a no-op function for any method access
       return () => Promise.resolve([]);
     }
     return c[prop];
   }
 });
 
-export function getAssetUrl(id) {
-  if (!id || typeof id !== "string") return "";
-  return `${DIRECTUS_URL}/assets/${id}`;
+export function getAssetUrl(id, fallbackKey = "") {
+  if (!id || typeof id !== "string") return getFallbackImage(fallbackKey);
+  const url = `${DIRECTUS_URL}/assets/${id}`;
+  if (isLocalhostUrl(url)) {
+    return getFallbackImage(fallbackKey);
+  }
+  return url;
 }
+
+export { fallbackImages };
