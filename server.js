@@ -1,13 +1,12 @@
 import express from "express";
 import compression from "compression";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { render } from "./dist/server/entry-server.js";
 import { existsSync } from "node:fs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const clientDist = path.join(__dirname, "dist", "client");
+const rootDir = process.cwd();
+const clientDist = path.join(rootDir, "dist", "client");
 const templatePath = existsSync(path.join(clientDist, "template.html"))
   ? path.join(clientDist, "template.html")
   : path.join(clientDist, "index.html");
@@ -42,3 +41,5 @@ app.use(async (req, res) => {
 app.listen(PORT, () => {
   console.log(`[SSR] Kamakhya Icecream ready -> http://localhost:${PORT}`);
 });
+
+export default app;

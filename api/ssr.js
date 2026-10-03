@@ -1,16 +1,22 @@
+import express from "express";
+import compression from "compression";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { render } from "../dist/server/entry-server.js";
 import { existsSync } from "node:fs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const clientDist = path.join(__dirname, "..", "dist", "client");
+const rootDir = process.cwd();
+const clientDist = path.join(rootDir, "dist", "client");
 const templatePath = existsSync(path.join(clientDist, "template.html"))
   ? path.join(clientDist, "template.html")
   : path.join(clientDist, "index.html");
 
-export default async function handler(req, res) {
+const app = express();
+
+app.use(compression());
+app.use(express.static(clientDist, { index: false }));
+
+app.use(async (req, res) => {
   try {
     const template = await readFile(templatePath, "utf-8");
     const { appHtml, initialData } = await render();
@@ -20,8 +26,7 @@ export default async function handler(req, res) {
         "</head>",
         `<script>window.__INITIAL_DATA__=${JSON.stringify(initialData).replace(/</g, "\\u003c")};</script></head>`
       );
-    res.setHeader("Content-Type", "text/html");
-    res.end(html);
+    res.status(200).set({ "Content-Type": "text/html" }).end(html);
   } catch (err) {
     console.error("[SSR] render error:", err);
     res
@@ -30,4 +35,6 @@ export default async function handler(req, res) {
         `<!doctype html><html><body><pre>${String(err.message || err)}</pre></body></html>`
       );
   }
-}
+});
+
+export default app;
