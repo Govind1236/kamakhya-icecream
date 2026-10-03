@@ -10,7 +10,7 @@ const clientDist = path.join(__dirname, "dist", "client");
 const indexHtmlPath = path.join(clientDist, "index.html");
 
 const app = express();
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 3000;
 
 app.use(compression());
 app.use(express.static(clientDist, { index: false }));
