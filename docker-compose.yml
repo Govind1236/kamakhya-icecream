@@ -1,0 +1,68 @@
+name: kamakhya
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kamakhya-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-kamakhyaDB}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_DATABASE:-kamakhyaDB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  directus:
+    image: directus/directus:${DIRECTUS_VERSION:-12.3.1}
+    container_name: kamakhya-directus
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECRET: ${SECRET:-change-me-in-production}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      DB_CLIENT: pg
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-kamakhyaDB}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+      WEBSOCKETS_ENABLED: "true"
+      PORT: 8055
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_extensions:/directus/extensions
+    ports:
+      - "8055:8055"
+
+  app:
+    build:
+      context: .
+      args:
+        VITE_DIRECTUS_URL: ${VITE_DIRECTUS_URL:-http://localhost:8055}
+    container_name: kamakhya-app
+    restart: unless-stopped
+    depends_on:
+      - directus
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DIRECTUS_INTERNAL_URL: http://directus:8055
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:
+  directus_uploads:
+  directus_extensions:

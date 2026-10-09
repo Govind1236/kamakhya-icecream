@@ -21,7 +21,7 @@ export async function loadPublicData() {
 
     const flavorsWithImages = (products ?? []).map((p) => ({
       ...p,
-      Image: p.Image || getFallbackImageForFlavor(p.Name),
+      Product_Image: p.Product_Image || getFallbackImageForFlavor(p.Title),
     }));
 
     return {
@@ -50,9 +50,9 @@ function getFallbackData() {
   return {
     hero: null,
     flavors: [
-      { id: 1, Name: "Vanilla", Description: "Classic creamy vanilla", Price: 50, Image: fallbackImages.vanilla, Sort: 1 },
-      { id: 2, Name: "Chocolate", Description: "Rich dark chocolate", Price: 60, Image: fallbackImages.chocolate, Sort: 2 },
-      { id: 3, Name: "Strawberry", Description: "Fresh strawberry delight", Price: 55, Image: fallbackImages.strawberry, Sort: 3 },
+      { id: 1, Name: "Vanilla", Title: "Vanilla", Description: "Classic creamy vanilla", Price: 50, Product_Image: fallbackImages.vanilla, Sort: 1 },
+      { id: 2, Name: "Chocolate", Title: "Chocolate", Description: "Rich dark chocolate", Price: 60, Product_Image: fallbackImages.chocolate, Sort: 2 },
+      { id: 3, Name: "Strawberry", Title: "Strawberry", Description: "Fresh strawberry delight", Price: 55, Product_Image: fallbackImages.strawberry, Sort: 3 },
     ],
     about: null,
     aboutCards: [],
@@ -73,7 +73,7 @@ export async function loadPublicDataByEntry(entry) {
 
   const flavorsWithImages = (flavors ?? []).map((f) => ({
     ...f,
-    Image: f.Image || getFallbackImageForFlavor(f.Name),
+    Product_Image: f.Product_Image || getFallbackImageForFlavor(f.Title),
   }));
 
   return { hero, flavors: flavorsWithImages, about, aboutCards, contact, social };

@@ -1,52 +1,58 @@
-// Syncs the AboutUs section's editable content into the backend so nothing
+// Syncs the About section's editable content into the backend so nothing
 // user-facing on the About section is hardcoded:
-//   - Adds text fields to the `AboutUs` collection and updates the singleton item.
+//   - Ensures every `AboutUs` field the component renders exists.
+//   - Creates the `AboutUs` singleton row if it is missing and fills in any
+//     field that is still empty (re-runs never overwrite an editor's changes).
 //   - Seeds the `AboutUsItem` collection with the three story-chapter cards.
 //
 //   node setup-about-content.mjs
-//
-// Uses env like setup-public-read.mjs.
-import "dotenv/config";
+import {
+  getToken,
+  listCollections,
+  ensureField,
+  request,
+  readItemsOrEmpty,
+} from "./setup-lib.mjs";
 
-const BASE = (process.env.VITE_DIRECTUS_URL ?? process.env.DIRECTUS_URL ?? "http://localhost:8055").replace(/\/$/, "");
-
-async function adminRequest(path, { method = "GET", body, token } = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: {
-      "content-type": "application/json",
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${JSON.stringify(json.errors?.[0]?.message ?? json)}`);
-  return json;
-}
-
+// Fields AboutUs.jsx reads. The component falls back to hardcoded copy when a
+// value is missing, so anything listed here is worth exposing to editors.
+// Heading_L1 / Heading_L2 / Footline / badges / rating used to be marked
+// deprecated and deleted by this script — that was wrong: the component still
+// reads them, so removing them just locked those strings into the bundle.
 const ABOUT_FIELDS = [
-  // [field, interfaceType, defaultValue, note, dbType]
-  ["Title", "input", "A little scoop of happiness, churned with care every morning.", "Editorial panel heading."],
-  ["Tagline", "input", "Sweet moments, served with a smile.", "Small caption beneath the big headline."],
-  ["Subtitle", "input-multiline", "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.", "Editorial panel paragraph below the heading."],
-  ["Fresh_Cream", "input", "100%", "% fresh cream shown on the image badge."],
-  ["Years_of_Trust", "input", "20+", "Years of trust shown in the stats strip."],
-  ["Displayimage", "file-image", "7ade0628-6c15-42e9-b95d-e8738b66cb2c", "Story image shown in the panel.", "uuid", ["file"]],
+  { field: "Title", type: "string", interface: "input", note: "Panel heading." },
+  { field: "Tagline", type: "string", interface: "input", note: "Caption beneath the big headline." },
+  { field: "Subtitle", type: "text", interface: "input-multiline", note: "Panel paragraph below the heading." },
+  { field: "Heading_L1", type: "string", interface: "input", note: "Headline line one." },
+  { field: "Heading_L2", type: "string", interface: "input", note: "Headline line two." },
+  { field: "Story_Blurb", type: "text", interface: "input-multiline", note: "Story blurb." },
+  { field: "Panel_Eyebrow", type: "string", interface: "input", note: "Panel eyebrow label." },
+  { field: "Fresh_Cream", type: "string", interface: "input", note: "Fresh-cream stat, e.g. 100%." },
+  { field: "Years_of_Trust", type: "string", interface: "input", note: "Years-of-trust stat, e.g. 20+." },
+  { field: "Rated_Value", type: "string", interface: "input", note: "Rating value, e.g. 4.9." },
+  { field: "Rated_Label", type: "string", interface: "input", note: "Rating caption." },
+  { field: "Footline", type: "string", interface: "input", note: "Small print under the stats." },
+  { field: "Badge_Made_Label", type: "string", interface: "input", note: "Badge over the story image." },
+  { field: "Badge_Real_Label", type: "string", interface: "input", note: "Second image badge." },
 ];
 
-// Fields that used to power the newer story-blurb layout. The About Us
-// section is now driven solely by the fields above, so remove any leftovers.
-const DEPRECATED_FIELDS = [
-  "Heading_L1",
-  "Heading_L2",
-  "Story_Blurb",
-  "Panel_Eyebrow",
-  "Rated_Value",
-  "Rated_Label",
-  "Footline",
-  "Badge_Made_Label",
-  "Badge_Real_Label",
-];
+// Seed copy for a brand-new AboutUs row. Mirrors the fallbacks that used to be
+// hardcoded in AboutUs.jsx.
+const DEFAULTS = {
+  Title: "A little scoop of happiness, churned with care every morning.",
+  Tagline: "Sweet moments, served with a smile.",
+  Subtitle:
+    "Hand-churned daily with real fruit, pure cream and a whole lot of love — from our parlour to your spoon.",
+  Heading_L1: "Made Fresh.",
+  Heading_L2: "Made With Love.",
+  Fresh_Cream: "100%",
+  Years_of_Trust: "20+",
+  Rated_Value: "4.9",
+  Rated_Label: "Rated Locally",
+  Footline: "Three generations · one recipe book",
+  Badge_Made_Label: "Made fresh daily",
+  Badge_Real_Label: "Real fruit · pure cream",
+};
 
 const CARDS = [
   {
@@ -58,7 +64,7 @@ const CARDS = [
   {
     Icon: "shopping-bag",
     Title: "Real Fruit, Real Cream",
-    Desc: "We use whole fruit from local orchards and cream from Assam&apos;s dairies. No powders, no premixes — just honest ingredients.",
+    Desc: "We use whole fruit from local orchards and cream from Assam's dairies. No powders, no premixes — just honest ingredients.",
     Sort: 2,
   },
   {
@@ -70,93 +76,59 @@ const CARDS = [
 ];
 
 async function main() {
-  const login = await adminRequest("/auth/login", {
-    method: "POST",
-    body: { email: process.env.ADMIN_EMAIL ?? "admin@example.com", password: process.env.ADMIN_PASSWORD ?? "admin123" },
-  });
-  const token = login.data.access_token;
+  const token = await getToken();
 
-  // 1. Add the missing AboutUs text fields (creates the column + Directus field).
-  const existingFields = await adminRequest("/fields/AboutUs", { token });
-  const existing = new Set(existingFields.data.map((f) => f.field));
-  const updatePayload = {};
-  for (const [field, interfaceType, value, note, type = "string", special = []] of ABOUT_FIELDS) {
-    if (existing.has(field)) {
-      console.log(`skip  AboutUs.${field} (already present)`);
-      continue;
+  const collections = await listCollections(token);
+  for (const required of ["AboutUs", "AboutUsItem"]) {
+    if (!collections.has(required)) {
+      throw new Error(`Collection "${required}" is missing — run scaffold-flavors.mjs first.`);
     }
-    await adminRequest("/fields/AboutUs", {
-      method: "POST",
-      token,
-      body: { field, type, meta: { interface: interfaceType, width: "full", note, ...(special.length ? { special } : {}) } },
-    });
-    console.log(`add   AboutUs.${field}`);
-    // Only set a default for fields that are brand new so existing
-    // content is never overwritten.
-    updatePayload[field] = value;
   }
 
-  // Ensure the story image field is wired to directus_files the same way as
-  // Products.Product_Image so the upload/choose control works in the admin.
-  const existingRelations = await adminRequest("/relations?limit=-1", { token });
-  const hasImageRel = existingRelations.data.some(
-    (r) => r.collection === "AboutUs" && r.field === "Displayimage"
-  );
-  if (!hasImageRel) {
-    await adminRequest("/relations", {
-      method: "POST",
-      token,
-      body: {
-        collection: "AboutUs",
-        field: "Displayimage",
-        related_collection: "directus_files",
-        schema: { on_update: "NO ACTION", on_delete: "SET NULL" },
-        meta: { one_deselect_action: "nullify" },
-      },
-    });
-    console.log("rel   AboutUs.Displayimage -> directus_files");
+  for (const field of ABOUT_FIELDS) {
+    await ensureField(token, "AboutUs", field);
+  }
+
+  // 1. Ensure the singleton row exists.
+  const existing = await readItemsOrEmpty("AboutUs", token);
+  let row = existing[0] ?? null;
+
+  if (!row) {
+    row = await request("/items/AboutUs", { method: "POST", token, body: { ...DEFAULTS } });
+    console.log(`add   AboutUs singleton row ${row.id}`);
   } else {
-    console.log("skip  AboutUs.Displayimage relation (already present)");
-  }
-
-  // 2. Remove leftover fields from the old about layout.
-  for (const field of DEPRECATED_FIELDS) {
-    if (!existing.has(field)) {
-      console.log(`skip  AboutUs.${field} (not present)`);
-      continue;
+    // Only fill fields that are still blank so existing edits survive.
+    const patch = {};
+    for (const [field, value] of Object.entries(DEFAULTS)) {
+      const current = row[field];
+      if ((current === null || current === undefined || current === "") && !patch[field]) {
+        patch[field] = value;
+      }
     }
-    await adminRequest(`/fields/AboutUs/${field}`, { method: "DELETE", token });
-    console.log(`rm    AboutUs.${field}`);
+    if (Object.keys(patch).length > 0) {
+      row = await request(`/items/AboutUs/${row.id}`, { method: "PATCH", token, body: patch });
+      console.log(`patch AboutUs/${row.id}:`, Object.keys(patch).join(", "));
+    } else {
+      console.log("skip  AboutUs singleton (all fields already populated)");
+    }
   }
 
-  // 3. Update the singleton AboutUs item (id 1) with only newly added values.
-  if (Object.keys(updatePayload).length > 0) {
-    const patch = await adminRequest("/items/AboutUs/1", { method: "PATCH", token, body: updatePayload });
-    console.log("patched AboutUs item:", patch.data.id);
-  } else {
-    console.log("no new AboutUs fields to patch");
-  }
-
-  // 4. Seed AboutUsItem cards.
-  const items = await adminRequest("/items/AboutUsItem?limit=-1", { token });
-  const titles = new Set(items.data.map((i) => i.Title));
+  // 2. Seed the story chapter cards.
+  const items = await readItemsOrEmpty("AboutUsItem", token);
+  const titles = new Set(items.map((i) => i.Title));
   for (const card of CARDS) {
     if (titles.has(card.Title)) {
       console.log(`skip  AboutUsItem "${card.Title}" (already present)`);
       continue;
     }
-    const created = await adminRequest("/items/AboutUsItem", {
-      method: "POST",
-      token,
-      body: card,
-    });
-    console.log(`seed  AboutUsItem "${created.data.Title}"`);
+    await request("/items/AboutUsItem", { method: "POST", token, body: card });
+    console.log(`add   AboutUsItem "${card.Title}"`);
   }
 
-  console.log("Done. AboutUs content is now editable in the backend.");
+  console.log("Done. About content is now editable in the backend.");
 }
 
-main().catch((e) => {
-  console.error("setup failed:", e.message);
+main().catch((err) => {
+  console.error(`setup failed: ${err.message}`);
   process.exit(1);
 });

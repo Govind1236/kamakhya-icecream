@@ -1,36 +1,24 @@
 // Syncs the Contact section's editable content into the backend so nothing
 // user-facing on the contact/footer area is hardcoded in the components:
-//   - Adds `Address`, `MapLink` and `MapEmbed` text fields to `ContactUs`.
+//   - Ensures the `Address`, `MapLink` and `MapEmbed` fields exist on `ContactUs`.
 //   - Migrates the legacy `Map` value into `Address` (it always held a street
 //     address, the field name was just wrong).
 //   - Cleans up `SocialMedia` links that were saved wrapped in backticks.
 //
 //   node setup-contact-content.mjs
-//
-// Uses env like setup-public-read.mjs.
-import "dotenv/config";
-
-const BASE = (process.env.VITE_DIRECTUS_URL ?? process.env.DIRECTUS_URL ?? "http://localhost:8055").replace(/\/$/, "");
-
-async function adminRequest(path, { method = "GET", body, token } = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: {
-      "content-type": "application/json",
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${JSON.stringify(json.errors?.[0]?.message ?? json)}`);
-  return json;
-}
+import {
+  getToken,
+  listCollections,
+  ensureField,
+  request,
+  readItemsOrEmpty,
+} from "./setup-lib.mjs";
 
 const CONTACT_FIELDS = [
-  // [field, interfaceType, type, seedValue, note]
-  ["Address", "input-multiline", "text", null, "Street address shown on the contact cards and in the footer."],
-  ["MapLink", "input", "string", "https://share.google/gmhjPcFdxrLkzav4u", "Google Maps link for the location card."],
-  ["MapEmbed", "input", "string", "https://maps.google.com/maps?q=Shree%20Mata%20Kamakhya%20Ice-cream%20Udhyog%2C%20Shani%20Arjun%2C%20Koshi%20Province%206&z=16&output=embed", "Embeddable map URL used in the footer iframe."],
+  // [field, interfaceType, type, note]
+  ["Address", "input-multiline", "text", "Street address shown on the contact cards and in the footer."],
+  ["MapLink", "input", "string", "Google Maps link for the location card."],
+  ["MapEmbed", "input", "string", "Embeddable map URL used in the footer iframe."],
 ];
 
 // Values that used to live inline in the components before this migration.
@@ -42,32 +30,23 @@ const SEEDS = {
 };
 
 async function main() {
-  const login = await adminRequest("/auth/login", {
-    method: "POST",
-    body: { email: process.env.ADMIN_EMAIL ?? "admin@example.com", password: process.env.ADMIN_PASSWORD ?? "admin123" },
-  });
-  const token = login.data.access_token;
+  const token = await getToken();
 
-  // 1. Add the new ContactUs fields (creates the column + Directus field).
-  const existingFields = await adminRequest("/fields/ContactUs", { token });
-  const existing = new Set(existingFields.data.map((f) => f.field));
-  for (const [field, interfaceType, type, , note] of CONTACT_FIELDS) {
-    if (existing.has(field)) {
-      console.log(`skip  ContactUs.${field} (already present)`);
-      continue;
+  const collections = await listCollections(token);
+  for (const required of ["ContactUs", "SocialMedia"]) {
+    if (!collections.has(required)) {
+      throw new Error(`Collection "${required}" is missing — run scaffold-flavors.mjs first.`);
     }
-    await adminRequest("/fields/ContactUs", {
-      method: "POST",
-      token,
-      body: { field, type, meta: { interface: interfaceType, width: "full", note } },
-    });
-    console.log(`add   ContactUs.${field}`);
   }
 
-  // 2. Migrate the legacy `Map` value into `Address` before anything reads it.
-  const items = await adminRequest("/items/ContactUs?limit=-1", { token });
+  for (const [field, interfaceType, type, note] of CONTACT_FIELDS) {
+    await ensureField(token, "ContactUs", { field, type, interface: interfaceType, note });
+  }
+
+  // Migrate the legacy `Map` value into `Address` before anything reads it.
+  const items = await readItemsOrEmpty("ContactUs", token);
   const patch = {};
-  for (const item of items.data) {
+  for (const item of items) {
     const legacyAddress = typeof item.Map === "string" && item.Map.trim() ? item.Map.trim() : null;
     if (legacyAddress && !item.Address) {
       patch.Address = legacyAddress;
@@ -76,7 +55,7 @@ async function main() {
   }
 
   // Only seed fields that are still empty so re-runs never clobber edits.
-  const target = items.data[0];
+  const target = items[0];
   if (target) {
     for (const [field] of CONTACT_FIELDS) {
       if (!patch[field] && !target[field] && SEEDS[field]) {
@@ -84,22 +63,27 @@ async function main() {
         console.log(`seed  ContactUs.${field}`);
       }
     }
+  } else {
+    console.log("warn  ContactUs has no rows yet — create one in the admin app, then re-run to seed it.");
   }
 
-  if (Object.keys(patch).length > 0) {
-    const result = await adminRequest(`/items/ContactUs/${target.id}`, { method: "PATCH", token, body: patch });
-    console.log("patched ContactUs item:", result.data.id, patch);
+  if (target && Object.keys(patch).length > 0) {
+    const result = await request(`/items/ContactUs/${target.id}`, {
+      method: "PATCH",
+      token,
+      body: patch,
+    });
+    console.log(`patched ContactUs item ${result.id}:`, patch);
   } else {
     console.log("no ContactUs fields to patch");
   }
 
-  // 3. Strip the stray backticks some social links were saved with.
-  const social = await adminRequest("/items/SocialMedia?limit=-1", { token });
-  for (const row of social.data) {
+  // Strip the stray backticks some social links were saved with.
+  for (const row of await readItemsOrEmpty("SocialMedia", token)) {
     if (typeof row.Link !== "string") continue;
     const cleaned = row.Link.trim().replace(/^`+|`+$/g, "").trim();
     if (cleaned && cleaned !== row.Link) {
-      await adminRequest(`/items/SocialMedia/${row.id}`, { method: "PATCH", token, body: { Link: cleaned } });
+      await request(`/items/SocialMedia/${row.id}`, { method: "PATCH", token, body: { Link: cleaned } });
       console.log(`clean SocialMedia/${row.id}.Link`);
     }
   }
@@ -107,7 +91,7 @@ async function main() {
   console.log("Done. Contact content is now editable in the backend.");
 }
 
-main().catch((e) => {
-  console.error("setup failed:", e.message);
+main().catch((err) => {
+  console.error(`setup failed: ${err.message}`);
   process.exit(1);
 });

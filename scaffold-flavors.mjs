@@ -1,179 +1,156 @@
-import { randomUUID } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+// Bootstraps the Directus schema the Kamakhya frontend reads.
+//
+//   node scaffold-flavors.mjs
+//
+// Creates all six content collections with the exact field names the React
+// components expect (Title / Description / Price / Product_Image / ... — the
+// frontend is PascalCase, do not "tidy" these into snake_case).
+//
+// Idempotent: safe to re-run, existing collections/fields/relations are kept.
+//
+// Run order (schema first, permissions second):
+//   node scaffold-flavors.mjs
+//   node setup-public-read.mjs
+//   node setup-inquiries.mjs
+//   node setup-contact-content.mjs
+//   node setup-about-content.mjs
 import {
-  createDirectus,
-  rest,
-  staticToken,
-  authentication,
-  createCollection,
-  createField,
-  createPermissions,
-  readCollections,
-} from "@directus/sdk";
+  getToken,
+  getPublicPolicyId,
+  ensureCollection,
+  ensureField,
+  ensureFileRelation,
+  grantPermission,
+} from "./setup-lib.mjs";
 
-const BASE_URL =
-  process.env.DIRECTUS_URL ?? process.env.PUBLIC_URL ?? "http://localhost:8055";
+const FILE = "file";
 
-async function getAdminClient() {
-  if (process.env.DIRECTUS_ADMIN_TOKEN) {
-    return createDirectus(BASE_URL)
-      .with(staticToken(process.env.DIRECTUS_ADMIN_TOKEN))
-      .with(rest());
-  }
-
-  const authClient = createDirectus(BASE_URL)
-    .with(authentication("json"))
-    .with(rest());
-  await authClient.login({
-    email: process.env.ADMIN_EMAIL,
-    password: process.env.ADMIN_PASSWORD,
-  });
-
-  const token = randomUUID();
-  await authClient.request({
-    method: "PATCH",
-    path: "/users/me",
-    body: { token },
-  });
-
-  persistToken(token);
-  return createDirectus(BASE_URL).with(staticToken(token)).with(rest());
-}
-
-function persistToken(token) {
-  const envPath = join(process.cwd(), ".env");
-  let content;
-  try {
-    content = readFileSync(envPath, "utf8");
-  } catch {
-    content = "";
-  }
-
-  const lines = content.split(/\r?\n/);
-  const hasKey = lines.some((line) =>
-    /^\s*DIRECTUS_ADMIN_TOKEN\s*=/.test(line)
-  );
-
-  if (!hasKey) {
-    const entry = `DIRECTUS_ADMIN_TOKEN="${token}"`;
-    writeFileSync(envPath, content.trimEnd() + (content.trimEnd() ? "\n" : "") + entry + "\n", "utf8");
-    console.log(`Static admin token saved to .env as DIRECTUS_ADMIN_TOKEN`);
-  }
-}
-
-const collections = [
+/**
+ * `fileFields` lists uuid fields that must be related to directus_files.
+ * They intentionally stay plain `uuid` columns rather than o2m relations,
+ * because the frontend resolves them via `${DIRECTUS_URL}/assets/${id}` and
+ * `getAssetUrl()` rejects anything that is not a bare string.
+ */
+const COLLECTIONS = [
   {
-    collection: "flavors",
-    schema: {},
-    meta: {
-      icon: "ice_cream",
-      note: "Ice-cream flavors for Kamakhya Ice-Cream",
-      display_template: "{{name}}",
-    },
-  },
-];
-
-const fields = [
-  {
-    field: "name",
-    type: "string",
-    schema: { is_nullable: false, max_length: 255 },
-    meta: { interface: "input", label: "Name", required: true },
+    collection: "Products",
+    note: "Ice-cream flavours shown in the menu grid and the hero carousel.",
+    icon: "ice_cream",
+    display_template: "{{Title}}",
+    fileFields: ["Product_Image"],
+    fields: [
+      { field: "Title", type: "string", interface: "input", required: true, note: "Flavour name." },
+      { field: "Description", type: "text", interface: "input-multiline", note: "Flavour blurb." },
+      { field: "Price", type: "decimal", interface: "input", options: { min: 0 }, note: "Price per scoop." },
+      { field: "Product_Image", type: "uuid", interface: "file-image", special: [FILE], note: "Flavour photo." },
+      { field: "Tags", type: "string", interface: "input", note: "Badge text, e.g. Bestseller." },
+      { field: "Sort", type: "integer", interface: "input", note: "Manual display order." },
+    ],
   },
   {
-    field: "description",
-    type: "text",
-    schema: { is_nullable: true },
-    meta: { interface: "input-multiline", label: "Description" },
+    collection: "Hero_Section",
+    note: "Hero content. Loaded by the SSR data loader but not rendered yet; kept for parity with the original template.",
+    icon: "star",
+    display_template: "{{Title}}",
+    fields: [
+      { field: "Title", type: "string", interface: "input" },
+    ],
   },
   {
-    field: "price",
-    type: "integer",
-    schema: { is_nullable: true },
-    meta: { interface: "input", label: "Price", options: { min: 0 } },
+    collection: "AboutUs",
+    note: "Singleton: the About section editorial panel, stats strip and badges.",
+    icon: "info",
+    display_template: "{{Title}}",
+    fileFields: ["Displayimage"],
+    fields: [
+      { field: "Title", type: "string", interface: "input", note: "Panel heading." },
+      { field: "Tagline", type: "string", interface: "input", note: "Caption beneath the big headline." },
+      { field: "Subtitle", type: "text", interface: "input-multiline", note: "Panel paragraph." },
+      { field: "Heading_L1", type: "string", interface: "input", note: "Headline line one." },
+      { field: "Heading_L2", type: "string", interface: "input", note: "Headline line two." },
+      { field: "Story_Blurb", type: "text", interface: "input-multiline", note: "Story blurb." },
+      { field: "Panel_Eyebrow", type: "string", interface: "input", note: "Panel eyebrow label." },
+      { field: "Fresh_Cream", type: "string", interface: "input", note: "Fresh-cream stat, e.g. 100%." },
+      { field: "Years_of_Trust", type: "string", interface: "input", note: "Years-of-trust stat, e.g. 20+." },
+      { field: "Rated_Value", type: "string", interface: "input", note: "Rating value, e.g. 4.9." },
+      { field: "Rated_Label", type: "string", interface: "input", note: "Rating caption." },
+      { field: "Footline", type: "string", interface: "input", note: "Small print under the stats." },
+      { field: "Badge_Made_Label", type: "string", interface: "input", note: "Badge over the story image." },
+      { field: "Badge_Real_Label", type: "string", interface: "input", note: "Second image badge." },
+      { field: "Displayimage", type: "uuid", interface: "file-image", special: [FILE], note: "Story image." },
+    ],
   },
   {
-    field: "image",
-    type: "uuid",
-    schema: { is_nullable: true },
-    meta: { interface: "file", label: "Image", special: ["file"] },
+    collection: "AboutUsItem",
+    note: "About section story chapter cards.",
+    icon: "cards",
+    display_template: "{{Title}}",
+    fields: [
+      { field: "Icon", type: "string", interface: "select-dropdown", options: { choices: [
+        { text: "Store", value: "store" },
+        { text: "Shopping bag", value: "shopping-bag" },
+        { text: "Heart", value: "heart" },
+      ] }, note: "Must be one of the keys AboutUs.jsx knows; unknown values fall back to the heart icon." },
+      { field: "Title", type: "string", interface: "input", note: "Card title." },
+      { field: "Desc", type: "text", interface: "input-multiline", note: "Card body copy." },
+      { field: "Sort", type: "integer", interface: "input", note: "Manual display order." },
+    ],
   },
   {
-    field: "status",
-    type: "string",
-    schema: { is_nullable: true, default_value: "available" },
-    meta: {
-      interface: "select-dropdown",
-      label: "Status",
-      options: {
-        choices: [
-          { text: "Available", value: "available" },
-          { text: "Sold Out", value: "sold_out" },
-        ],
-      },
-    },
+    collection: "ContactUs",
+    note: "Singleton: contact card details, opening hours and map links.",
+    icon: "contact_mail",
+    display_template: "{{ContactNumber}}",
+    fields: [
+      { field: "ContactNumber", type: "string", interface: "input", note: "Phone number; digits drive both the tel: link and the WhatsApp order button." },
+      { field: "Email", type: "string", interface: "input", note: "Public email address." },
+      { field: "OpenHours", type: "string", interface: "input", note: "Opening hours line." },
+      { field: "Address", type: "text", interface: "input-multiline", note: "Street address shown on the contact card and in the footer." },
+      { field: "MapLink", type: "string", interface: "input", note: "Google Maps link for the location card." },
+      { field: "MapEmbed", type: "string", interface: "input", note: "Embeddable map URL used in the footer iframe." },
+    ],
   },
   {
-    field: "category",
-    type: "string",
-    schema: { is_nullable: true },
-    meta: {
-      interface: "select-dropdown",
-      label: "Category",
-      options: {
-        choices: [
-          { text: "Cups", value: "Cups" },
-          { text: "Family Packs", value: "Family Packs" },
-          { text: "Kulfi", value: "Kulfi" },
-        ],
-      },
-    },
-  },
-  {
-    field: "stock_count",
-    type: "integer",
-    schema: { is_nullable: true },
-    meta: { interface: "input", label: "Stock Count", options: { min: 0 } },
-  },
-];
-
-const publicPermissions = [
-  {
-    role: null,
-    collection: "flavors",
-    action: "read",
-    fields: ["*"],
-    permissions: {},
-    validation: {},
-  },
-  {
-    role: null,
-    collection: "directus_files",
-    action: "read",
-    fields: ["*"],
-    permissions: {},
-    validation: {},
+    collection: "SocialMedia",
+    note: "Footer social profile links.",
+    icon: "share",
+    display_template: "{{Platform}}",
+    fields: [
+      { field: "Platform", type: "string", interface: "select-dropdown", options: { choices: [
+        { text: "WhatsApp", value: "WhatsApp" },
+        { text: "Facebook", value: "Facebook" },
+        { text: "Instagram", value: "Instagram" },
+      ] }, note: "Drives which SVG icon Footer.jsx renders." },
+      { field: "Link", type: "string", interface: "input", note: "Profile URL. Stored without backticks." },
+    ],
   },
 ];
 
 async function main() {
-  const client = await getAdminClient();
+  const token = await getToken();
+  console.log(`Connected to ${process.env.DIRECTUS_URL ?? "(default)"}`);
 
-  const existing = await client.request(readCollections());
-  if (existing.some((c) => c.collection === "flavors")) {
-    console.log("'flavors' collection already exists — skipping creation.");
-  } else {
-    await client.request(createCollection(collections[0]));
-    for (const field of fields) {
-      await client.request(createField("flavors", field));
+  for (const def of COLLECTIONS) {
+    await ensureCollection(token, def);
+    for (const field of def.fields) {
+      await ensureField(token, def.collection, field);
     }
-    await client.request(createPermissions(publicPermissions));
-    console.log("Done: 'flavors' collection, fields, and public read permissions created.");
+    for (const fileField of def.fileFields ?? []) {
+      await ensureFileRelation(token, def.collection, fileField);
+    }
   }
+
+  // The SPA and SSR bundle read these without authentication.
+  const publicPolicy = await getPublicPolicyId(token);
+  const readable = [...COLLECTIONS.map((c) => c.collection), "directus_files"];
+  for (const collection of readable) {
+    await grantPermission(token, publicPolicy, collection, "read");
+  }
+
+  console.log(`Done. ${COLLECTIONS.length} collections ensured and public read granted.`);
 }
 
 main().catch((err) => {
-  console.error("Scaffold failed:", err.message ?? err);
+  console.error(`scaffold failed: ${err.message}`);
   process.exit(1);
 });
